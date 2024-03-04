@@ -16,7 +16,7 @@ int main()
 	world.add(std::make_shared<sphere>("world/sphere_2", point3(0, -100.5, -1), 100));
 
 	// **** Camera ****
-	camera cam = camera(320, 180, 1.0);
+	camera cam = camera(320, 180);
 	cam.render(world, rec);
 
 	return 0;
