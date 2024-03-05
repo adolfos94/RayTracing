@@ -6,10 +6,7 @@
 #include <vector>
 
 #include <rerun.hpp>
-
-#include "color.hpp"
-#include "ray.hpp"
-#include "vec3.hpp"
+#include <spdlog/spdlog.h>
 
 // Constants
 constexpr double infinity = std::numeric_limits<double>::infinity();

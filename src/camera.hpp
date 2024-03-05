@@ -42,6 +42,7 @@ private:
 	double m_viewport_height; // Camera view port height
 
 	size_t m_samples_per_pixel = 100; // Count of random samples for each pixel
+	size_t m_max_depth_ray_generation = 50; // Maximum number of ray bounces into scene
 
 	point3 m_camera_center = point3(0.0, 0.0, 0.0); // Camera center
 
@@ -99,18 +100,28 @@ private:
 		return ray(ray_origin, ray_direction);
 	}
 
-	color ray_color(const ray& r, const hittable& world) const
+	color ray_color(const ray& r, const hittable& world, size_t depth) const
 	{
 		hit_record rec;
 
-		if (world.hit(r, interval(0, infinity), rec))
-			return 0.5 * (rec.normal + color(1, 1, 1));
+		if (depth >= m_max_depth_ray_generation)
+			return color();
+
+		if (world.hit(r, interval(0.001, infinity), rec))
+		{
+			vec3 direction = rec.normal + random_unit_vector();
+			return 0.5 * ray_color(ray(rec.p, direction), world, depth + 1);
+		}
 
 		vec3 unit_direction = unit_vector(r.direction());
 		auto a = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 	}
 
+	inline double linear_to_gamma(double linear_component)
+	{
+		return sqrt(linear_component);
+	}
 
 	rerun::Color sample_color(color pixel_color) 
 	{
@@ -123,6 +134,12 @@ private:
 		r *= scale;
 		g *= scale;
 		b *= scale;
+
+		// Apply the linear to gamma transform.
+		r = linear_to_gamma(r);
+		g = linear_to_gamma(g);
+		b = linear_to_gamma(b);
+
 
 		// Write the translated [0,255] value of each color component
 		return rerun::Color(
@@ -137,6 +154,8 @@ private:
 	{
 		for (size_t j = 0; j < m_image.height; ++j)
 		{
+			spdlog::info("Scanlines remaining: {}", (m_image.height - j));
+
 			for (size_t i = 0; i < m_image.width; ++i)
 			{
 				color pixel_color(0, 0, 0);
@@ -144,7 +163,7 @@ private:
 				for (size_t s = 0; s < m_samples_per_pixel; ++s)
 				{
 					ray ray = get_ray(i, j);
-					pixel_color += ray_color(ray, world);
+					pixel_color += ray_color(ray, world, 0);
 				}
 
 				m_image.draw(i, j, sample_color(pixel_color));
