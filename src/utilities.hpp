@@ -42,17 +42,16 @@ inline double random_double()
 /// <param name="min"></param>
 /// <param name="max"></param>
 /// <returns></returns>
-inline double random_double(double min, double max) 
+inline double random_double(double min, double max)
 {
 	return min + (max - min) * random_double();
 }
 
-
 // Structs
 struct Image
 {
-	size_t width;
-	size_t height;
+	size_t width = 0;
+	size_t height = 0;
 	std::vector<uint8_t> data;
 
 	Image() {};

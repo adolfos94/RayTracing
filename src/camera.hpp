@@ -79,7 +79,7 @@ private:
 	/// <summary>
 	/// Returns a random point in the square surrounding a pixel at the origin.
 	/// </summary>
-	vec3 pixel_sample_square() const 
+	vec3 pixel_sample_square() const
 	{
 		auto px = -0.5 + random_double();
 		auto py = -0.5 + random_double();
@@ -109,12 +109,18 @@ private:
 
 		if (world.hit(r, interval(0.001, infinity), rec))
 		{
-			vec3 direction = rec.normal + random_unit_vector();
-			return 0.5 * ray_color(ray(rec.p, direction), world, depth + 1);
+			ray scattered;
+			color attenuation;
+
+			if (rec.mat->scatter(r, rec, attenuation, scattered))
+				return attenuation * ray_color(scattered, world, depth + 1);
+
+			return color();
 		}
 
 		vec3 unit_direction = unit_vector(r.direction());
 		auto a = 0.5 * (unit_direction.y() + 1.0);
+
 		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 	}
 
@@ -123,7 +129,7 @@ private:
 		return sqrt(linear_component);
 	}
 
-	rerun::Color sample_color(color pixel_color) 
+	rerun::Color sample_color(color pixel_color)
 	{
 		auto r = pixel_color.x();
 		auto g = pixel_color.y();
@@ -140,7 +146,6 @@ private:
 		g = linear_to_gamma(g);
 		b = linear_to_gamma(b);
 
-
 		// Write the translated [0,255] value of each color component
 		return rerun::Color(
 			static_cast<uint8_t>(256 * intensity.clamp(r)),
@@ -148,7 +153,6 @@ private:
 			static_cast<uint8_t>(256 * intensity.clamp(b))
 		);
 	}
-
 
 	void ray_tracing_scene(const hittable& world)
 	{

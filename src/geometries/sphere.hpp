@@ -7,8 +7,12 @@
 class sphere : public hittable
 {
 public:
-	sphere(const std::string& _name, const point3 _center, const double _radius) :
-		name(_name), center(_center), radius(_radius) {}
+	sphere(
+		const std::string& _name, 
+		const point3 _center, 
+		const double _radius, 
+		std::shared_ptr<material> _material) :
+		name(_name), center(_center), radius(_radius), mat(_material) {}
 
 	bool hit(const ray& r, const interval& ray_t, hit_record& rec) const override
 	{
@@ -35,6 +39,7 @@ public:
 		rec.t = root;
 		rec.p = r.at(rec.t);
 		rec.set_face_normal(r, (rec.p - center) / radius);
+		rec.mat = mat;
 
 		return true;
 	}
@@ -63,6 +68,7 @@ private:
 	std::string name;
 	point3 center;
 	double radius;
+	std::shared_ptr<material> mat;
 };
 
 #endif
