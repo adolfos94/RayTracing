@@ -30,6 +30,8 @@ int main()
 	// **** Camera ****
 	camera cam = camera(1280, 720);
 	cam.vfov = 20;
+	cam.defocus_angle = 10.0;
+	cam.focus_distance = 3.4;
 	cam.lookfrom = point3(-2, 2, 1);
 	cam.lookat = point3(0, 0, -1);
 	cam.up_vector = vec3(0, 1, 0);
