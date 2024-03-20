@@ -8,14 +8,18 @@ class camera
 {
 public:
 
-	camera(const size_t width, const size_t height) :
-		m_width(width), m_height(height)
-	{
-		initialize();
-	};
+	// Camera params
+	double vfov = 90;					// Vertical Field of View
+	point3 lookfrom = point3(0, 0, 0); // Point camera is looking from
+	point3 lookat = point3(0, 0, -1);	// Point camera is looking at
+	vec3 up_vector = vec3(0, 1, 0);		// Camera "up" vector (direction)
+
+	camera(const size_t width, const size_t height) : m_width(width), m_height(height){};
 
 	void render(const hittable& world, const rerun::RecordingStream& rec)
 	{
+		initialize();
+
 		ray_tracing_scene(world);
 
 		//world.render(rec);
@@ -34,21 +38,18 @@ public:
 
 private:
 
-	// Camera params
 	size_t m_width;           // Rendered image width
 	size_t m_height;          // Rendered image height
-	double m_focal_length;    // Camera focal length
-	double m_viewport_width;  // Camera view port width
-	double m_viewport_height; // Camera view port height
 
 	size_t m_samples_per_pixel = 100; // Count of random samples for each pixel
 	size_t m_max_depth_ray_generation = 50; // Maximum number of ray bounces into scene
 
-	point3 m_camera_center = point3(0.0, 0.0, 0.0); // Camera center
+	point3 m_camera_center; // Camera center
+	point3 m_pixel_init_00; // Location of pixel 0, 0
 
 	vec3 m_pixel_delta_u; // Offset to pixel to the right
 	vec3 m_pixel_delta_v; // Offset to pixel below
-	vec3 m_pixel_init_00; // Location of pixel 0, 0
+	vec3 m_u, m_v, m_w;	  // Camera frame basis vectors
 
 	// Visualizations
 	Image m_image;
@@ -58,21 +59,30 @@ private:
 	{
 		m_image = Image(m_width, m_height);
 
+		m_camera_center = lookfrom;
+
 		// Determine viewport dimensions.
-		m_focal_length = 1.0;
-		m_viewport_height = 2.0;
-		m_viewport_width = m_viewport_height * (static_cast<double>(m_width) / m_height);
+		auto focal_length = (lookfrom - lookat).length();
+		auto tetha = degrees_to_radians(vfov);
+		auto h = tan(tetha / 2.0);
+		auto viewport_height = 2 * h * focal_length;
+		auto viewport_width = viewport_height * (static_cast<double>(m_width) / m_height);
+
+		// Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+		m_w = unit_vector(lookfrom - lookat);
+		m_u = unit_vector(cross(up_vector, m_w));
+		m_v = cross(m_w, m_u);
 
 		// Calculate the vectors across the horizontal and down the vertical viewport edges.
-		auto viewport_u = vec3(m_viewport_width, 0, 0);
-		auto viewport_v = vec3(0, -m_viewport_height, 0);
+		vec3 viewport_u = viewport_width * m_u;    // Vector across viewport horizontal edge
+		vec3 viewport_v = viewport_height * -m_v;  // Vector down viewport vertical edge
 
 		// Calculate the horizontal and vertical delta vectors from pixel to pixel.
 		m_pixel_delta_u = viewport_u / m_width;
 		m_pixel_delta_v = viewport_v / m_height;
 
 		// Calculate the location of the upper left pixel.
-		auto viewport_upper_left = m_camera_center - vec3(0, 0, m_focal_length) - viewport_u / 2 - viewport_v / 2;
+		auto viewport_upper_left = m_camera_center - (focal_length * m_w) - viewport_u / 2 - viewport_v / 2;
 		m_pixel_init_00 = viewport_upper_left + 0.5 * (m_pixel_delta_u + m_pixel_delta_v);
 	}
 

@@ -8,11 +8,15 @@ class sphere : public hittable
 {
 public:
 	sphere(
-		const std::string& _name, 
-		const point3 _center, 
-		const double _radius, 
-		std::shared_ptr<material> _material) :
-		name(_name), center(_center), radius(_radius), mat(_material) {}
+		const point3 _center,
+		const double _radius,
+		std::shared_ptr<material> _material,
+		std::optional<std::string> _name = std::nullopt) :
+		center(_center), radius(_radius), mat(_material)
+	{
+		if (_name.has_value())
+			name = _name.value();
+	}
 
 	bool hit(const ray& r, const interval& ray_t, hit_record& rec) const override
 	{
@@ -65,10 +69,10 @@ public:
 
 private:
 
-	std::string name;
 	point3 center;
 	double radius;
 	std::shared_ptr<material> mat;
+	std::string name;
 };
 
 #endif
