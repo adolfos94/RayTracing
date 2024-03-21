@@ -43,7 +43,7 @@ private:
 	size_t m_width;           // Rendered image width
 	size_t m_height;          // Rendered image height
 
-	size_t m_samples_per_pixel = 100; // Count of random samples for each pixel
+	size_t m_samples_per_pixel = 500;		// Count of random samples for each pixel
 	size_t m_max_depth_ray_generation = 50; // Maximum number of ray bounces into scene
 
 	point3 m_camera_center; // Camera center

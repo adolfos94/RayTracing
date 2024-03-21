@@ -41,5 +41,6 @@ On Windows, run like this:
 ## Future Development
 
 - Complete book series.
+  - [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 - CUDA
 - OptiX
