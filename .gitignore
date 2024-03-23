@@ -34,3 +34,5 @@
 # Visual Studio
 *.vs
 out
+build
+.DS_Store
