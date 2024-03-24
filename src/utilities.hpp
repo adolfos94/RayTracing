@@ -48,30 +48,16 @@ inline double random_double(double min, double max)
 }
 
 // Structs
-struct Image
+struct image
 {
 	size_t width = 0;
 	size_t height = 0;
 	std::vector<uint8_t> data;
 
-	Image() {};
+	image() {};
 
-	Image(const size_t w, const size_t h, uint8_t val = 0) : width(w), height(h)
+	image(const size_t w, const size_t h, uint8_t val = 0) : width(w), height(h)
 	{
 		data.resize(width * height * 3, val);
 	}
-
-	void draw(const size_t i, const size_t j, const rerun::Color color)
-	{
-		data[(j * width + i) * 3 + 0] = color.r();
-		data[(j * width + i) * 3 + 1] = color.g();
-		data[(j * width + i) * 3 + 2] = color.b();
-	}
-};
-
-struct Rays3D
-{
-	std::vector<rerun::Position3D> origins;
-	std::vector<rerun::Vector3D> vectors;
-	std::vector<rerun::Color> colors;
 };

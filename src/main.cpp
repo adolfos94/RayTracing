@@ -7,6 +7,8 @@
 #include "materials/lambertian.hpp"
 #include "materials/metal.hpp"
 
+#include "render.hpp"
+
 hittable_list RayTracingInOneWeekendWorld()
 {
 	hittable_list world;
@@ -66,18 +68,20 @@ int main()
 	rec.connect().exit_on_failure();
 	
 	// **** Camera ****
-	camera cam = camera(1280, 720);
+	camera cam = camera();
+	cam.width = 1280;
+	cam.height = 720;
 	cam.vfov = 20;
 	//	cam.lookfrom = point3(13, 2, 3);
 	//	cam.lookat = point3(0, 0, 0);
 	cam.lookfrom = point3(-2,2,1);
 	cam.lookat   = point3(0,0,-1);
-	cam.up_vector = vec3(0, 1, 0);
 	
 	//	cam.defocus_angle = 0.6;
 	//	cam.focus_distance = 10.0;
 	cam.defocus_angle = 10.0;
 	cam.focus_distance = 3.4;
+	cam.initialize();
 	
 	hittable_list world;
 	
@@ -92,7 +96,13 @@ int main()
 	world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
 	world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 	
-	cam.render(world, rec);
+
+	image img = image(cam.width, cam.height);
+	
+	// Render scene
+	render::render(world, cam, img);
+	
+	rec.log_timeless("world/image", rerun::Image({ img.height, img.width, 3 }, img.data));
 	
 	return 0;
 }

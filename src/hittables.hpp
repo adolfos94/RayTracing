@@ -39,14 +39,6 @@ public:
 
 		return hit_anything;
 	}
-
-	void render(const rerun::RecordingStream& rec) const override
-	{
-		for (const auto& object : objects)
-		{
-			object->render(rec);
-		}
-	}
 };
 
 #endif

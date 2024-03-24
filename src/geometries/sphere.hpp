@@ -48,25 +48,6 @@ public:
 		return true;
 	}
 
-	void render(const rerun::RecordingStream& rec) const override
-	{
-		rec.log_timeless(
-			name,
-			rerun::Asset3D::from_file("./assets/sphere.obj").
-			value_or_throw());
-
-		const auto trs =
-			rerun::TranslationRotationScale3D({
-			(float)center.x(),
-			(float)center.y(),
-			(float)center.z() },
-			(float)radius);
-
-		rec.log_timeless(
-			name,
-			rerun::Collection<rerun::OutOfTreeTransform3D>(rerun::OutOfTreeTransform3D(trs)));
-	}
-
 private:
 
 	point3 center;
