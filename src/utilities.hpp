@@ -47,17 +47,29 @@ inline double random_double(double min, double max)
 	return min + (max - min) * random_double();
 }
 
+/// <summary>
+/// Linear to gamma transform
+/// </summary>
+/// <param name="linear_component"></param>
+/// <returns></returns>
+inline double linear_to_gamma(double linear_component)
+{
+	return sqrt(linear_component);
+}
+
 // Structs
 struct image
 {
 	size_t width = 0;
 	size_t height = 0;
-	std::vector<uint8_t> data;
+	size_t size = 0;
+	uint8_t* data = nullptr;
 
 	image() {};
 
 	image(const size_t w, const size_t h, uint8_t val = 0) : width(w), height(h)
 	{
-		data.resize(width * height * 3, val);
+		size = width * height * 3;
+		data = new uint8_t[size]();
 	}
 };

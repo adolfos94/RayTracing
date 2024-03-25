@@ -4,6 +4,8 @@
 #include "color.hpp"
 #include "hittable.hpp"
 
+constexpr size_t SAMPLES_PER_PIXEL = 100;		// Count of random samples for each pixel
+
 class camera
 {
 public:
