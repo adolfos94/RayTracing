@@ -8,55 +8,6 @@
 #include <rerun.hpp>
 #include <spdlog/spdlog.h>
 
-// Constants
-constexpr double infinity = std::numeric_limits<double>::infinity();
-constexpr double pi = 3.1415926535897932385;
-
-// Utility Functions
-
-/// <summary>
-/// Converts degrees into radians
-/// </summary>
-/// <param name="degrees"></param>
-/// <returns></returns>
-inline double degrees_to_radians(double degrees)
-{
-	return degrees * pi / 180.0;
-}
-
-/// <summary>
-/// Returns a random real number in [0.0, 1.0).
-/// </summary>
-/// <returns></returns>
-inline double random_double()
-{
-	static std::default_random_engine generator;
-	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
-	return distribution(generator);
-}
-
-/// <summary>
-/// Returns a random real number in [min,max).
-/// </summary>
-/// <param name="min"></param>
-/// <param name="max"></param>
-/// <returns></returns>
-inline double random_double(double min, double max)
-{
-	return min + (max - min) * random_double();
-}
-
-/// <summary>
-/// Linear to gamma transform
-/// </summary>
-/// <param name="linear_component"></param>
-/// <returns></returns>
-inline double linear_to_gamma(double linear_component)
-{
-	return sqrt(linear_component);
-}
-
 // Structs
 struct image
 {
