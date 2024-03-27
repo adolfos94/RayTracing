@@ -6,7 +6,9 @@ int main()
 	const auto rec = rerun::RecordingStream("RayTracing");
 	rec.connect().exit_on_failure();
 
-	image img = image(1280, 720);
+	camera cam = camera(1280, 720);
+
+	image img = image(cam.image_width, cam.image_height);
 
 	// Render scene with CUDA
 	image d_img;
@@ -15,7 +17,7 @@ int main()
 	cudaMalloc(&d_img.data, img.size);
 
 	render::cuda::get_device_params();
-	render::cuda::render(d_img);
+	render::cuda::render(cam, d_img);
 
 	cudaMemcpy(img.data, d_img.data, img.size, cudaMemcpyDeviceToHost);
 	cudaFree(d_img.data);

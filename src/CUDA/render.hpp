@@ -5,6 +5,7 @@
 #include <device_launch_parameters.h>
 
 #include "color.hpp"
+#include "camera.hpp"
 
 namespace render
 {
@@ -14,6 +15,6 @@ namespace render
 
 		void get_device_params();
 
-		void render(image& img);
+		void render(camera& cam, image& img);
 	} // namespace cuda
 } // namespace render
