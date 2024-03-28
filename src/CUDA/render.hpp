@@ -7,6 +7,7 @@
 #include "color.hpp"
 #include "camera.hpp"
 
+
 namespace render
 {
 	namespace cuda

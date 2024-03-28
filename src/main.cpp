@@ -4,7 +4,7 @@ int main()
 {
 	// ReRun visualization
 	const auto rec = rerun::RecordingStream("RayTracing");
-	rec.connect().exit_on_failure();
+	rec.spawn().exit_on_failure();
 
 	camera cam = camera(1280, 720);
 
@@ -18,11 +18,11 @@ int main()
 
 	render::cuda::get_device_params();
 	render::cuda::render(cam, d_img);
-
 	cudaMemcpy(img.data, d_img.data, img.size, cudaMemcpyDeviceToHost);
-	cudaFree(d_img.data);
 
-	rec.log_timeless("world/cuda_image", rerun::Image({ img.height, img.width, 3 }, img.data));
+	rec.log_timeless("RayTracing", rerun::Image({ img.height, img.width, 3 }, img.data));
+
+	cudaFree(d_img.data);
 
 	return 0;
 }
