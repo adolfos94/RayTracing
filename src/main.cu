@@ -1,23 +1,4 @@
-#include "color.hpp"
-#include "camera.hpp"
-#include "hittable_list.hpp"
-#include "geometries/sphere.hpp"
-
-#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
-
-constexpr size_t BLOCK_SIZE = 32; // Thread block size
-
-void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
-{
-	if (result != cudaSuccess)
-	{
-		spdlog::error("[CUDA] Error: {} at {}:{} '{}'",
-			cudaGetErrorString(result), file, line, func);
-
-		cudaDeviceReset();
-		exit(-1);
-	}
-}
+#include "cuda/wrapper.hpp"
 
 __global__ void world_kernel(hittable_list** d_world, size_t num_objects)
 {
@@ -86,8 +67,8 @@ int main()
 	checkCudaErrors(cudaMalloc(&d_image.data, h_image.size));
 
 	// Render scene with CUDA
-	dim3 blocks(width / BLOCK_SIZE + 1, height / BLOCK_SIZE + 1);
-	dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
+	dim3 blocks(width / cuda::BLOCK_SIZE + 1, height / cuda::BLOCK_SIZE + 1);
+	dim3 threads(cuda::BLOCK_SIZE, cuda::BLOCK_SIZE);
 	render_kernel << <blocks, threads >> > (d_world, d_camera, d_image);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
