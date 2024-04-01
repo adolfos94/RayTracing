@@ -2,7 +2,7 @@
 #define COLOR_H
 
 #include "ray.hpp"
-#include "geometries/sphere.hpp"
+#include "hittable_list.hpp"
 
 using color = vec3;
 
@@ -14,14 +14,12 @@ __device__ inline void sample_color(color& pixel_color)
 	pixel_color[2] = 255.999 * pixel_color.z();
 }
 
-__device__ inline color ray_color(const ray& r)
+__device__ inline color ray_color(const ray& r, hittable_list** world)
 {
-	auto t = hit_sphere(point3(0, 0, -1), 0.5, r);
-
-	if (t > 0.0)
+	hit_record rec;
+	if ((*world)->hit(r, 0, infinity, rec))
 	{
-		vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
-		return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
+		return 0.5 * (rec.normal + color(1, 1, 1));
 	}
 
 	vec3 unit_direction = unit_vector(r.direction());

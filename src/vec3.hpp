@@ -1,12 +1,7 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include <cmath>
-#include <iostream>
-
 #include "utilities.hpp"
-
-using std::sqrt;
 
 class vec3
 {

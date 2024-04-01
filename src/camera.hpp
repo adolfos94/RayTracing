@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "vec3.hpp"
+#include "ray.hpp"
 
 class camera
 {
