@@ -23,9 +23,7 @@ __global__ void world_kernel(hittable_list** d_world, size_t num_objects)
 {
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
-		*d_world = new hittable_list();
-		(*d_world)->num_objects = num_objects;
-		(*d_world)->objects = new hittable * [num_objects]();
+		*d_world = new hittable_list(num_objects);
 		(*d_world)->objects[0] = new sphere(vec3(0, 0, -1), 0.5);
 		(*d_world)->objects[1] = new sphere(vec3(0, -100.5, -1), 100);
 	}

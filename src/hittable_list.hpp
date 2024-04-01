@@ -10,6 +10,11 @@ public:
 	hittable** objects = nullptr;
 	size_t num_objects = 0;
 
+	__device__ hittable_list(size_t N) : num_objects(N)
+	{
+		objects = new hittable * [num_objects]();
+	}
+
 	__device__ bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const
 	{
 		hit_record temp_rec;
