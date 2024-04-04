@@ -4,6 +4,8 @@
 #include "vec3.hpp"
 #include "ray.hpp"
 
+constexpr size_t SAMPLES_PER_PIXEL = 100; // Count of random samples for each pixel
+
 class camera
 {
 public:
@@ -32,12 +34,16 @@ public:
 		m_pixel00_loc = viewport_upper_left + 0.5 * (m_pixel_delta_u + m_pixel_delta_v);
 	}
 
-	__device__ ray get_ray(size_t i, size_t j) const
+	// Get a randomly sampled camera ray for the pixel at location i,j.
+	__device__ ray get_ray(curandState& local_rand_state, size_t i, size_t j) const
 	{
 		auto pixel_center = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
-		auto ray_direction = pixel_center - m_camera_center;
+		auto pixel_sample = pixel_center + pixel_sample_square(local_rand_state);
 
-		return ray(m_camera_center, ray_direction);
+		auto ray_origin = m_camera_center;
+		auto ray_direction = pixel_sample - ray_origin;
+
+		return ray(ray_origin, ray_direction);
 	}
 
 private:
@@ -46,6 +52,15 @@ private:
 	vec3 m_pixel00_loc;
 
 	point3 m_camera_center = point3(0, 0, 0);
+
+	__device__ vec3 pixel_sample_square(curandState& local_rand_state) const
+	{
+		// Returns a random point in the square surrounding a pixel at the origin.
+		auto px = -0.5 + random_double(local_rand_state);
+		auto py = -0.5 + random_double(local_rand_state);
+
+		return (px * m_pixel_delta_u) + (py * m_pixel_delta_v);
+	}
 };
 
 #endif

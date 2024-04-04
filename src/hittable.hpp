@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include "ray.hpp"
+#include "interval.hpp"
 
 class hit_record
 {
@@ -26,7 +27,7 @@ class hittable
 public:
 	__device__ virtual ~hittable() = default;
 
-	__device__ virtual bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const = 0;
+	__device__ virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
 };
 
 #endif

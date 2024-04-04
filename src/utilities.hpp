@@ -8,23 +8,33 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include <curand_kernel.h>
 #include <device_launch_parameters.h>
-
-#include <thrust/device_vector.h>
 
 #include <rerun.hpp>
 #include <spdlog/spdlog.h>
 
 // Constants
-
 __constant__ const double infinity = std::numeric_limits<double>::infinity();
 __constant__ const double pi = 3.1415926535897932385;
 
 // Utility Functions
 
-inline double degrees_to_radians(double degrees)
+__device__ inline double degrees_to_radians(double degrees)
 {
 	return degrees * pi / 180.0;
+}
+
+__device__ inline double random_double(curandState& local_rand_state)
+{
+	// Returns a random real in [0,1).
+	return curand_uniform(&local_rand_state);
+}
+
+__device__ inline double random_double(curandState& local_rand_state, double min, double max)
+{
+	// Returns a random real in [min,max).
+	return min + (max - min) * random_double(local_rand_state);
 }
 
 // Structs

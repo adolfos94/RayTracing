@@ -10,7 +10,7 @@
 
 namespace cuda
 {
-	constexpr size_t BLOCK_SIZE = 32; // Thread block size
+	constexpr size_t BLOCK_SIZE = 16; // Thread block size
 
 	inline void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
 	{
