@@ -6,6 +6,11 @@
 
 using color = vec3;
 
+__device__ inline double linear_to_gamma(double linear_component)
+{
+	return sqrt(linear_component);
+}
+
 __device__ inline void sample_color(const size_t samples_per_pixel, color& pixel_color)
 {
 	auto r = pixel_color.x();
@@ -18,6 +23,11 @@ __device__ inline void sample_color(const size_t samples_per_pixel, color& pixel
 	g *= scale;
 	b *= scale;
 
+	// Apply the linear to gamma transform.
+	r = linear_to_gamma(r);
+	g = linear_to_gamma(g);
+	b = linear_to_gamma(b);
+
 	// Write the translated [0,255] value of each color component.
 	const interval intensity(0.000, 0.999);
 	pixel_color[0] = 256.0 * intensity.clamp(r);
@@ -25,15 +35,31 @@ __device__ inline void sample_color(const size_t samples_per_pixel, color& pixel
 	pixel_color[2] = 256.0 * intensity.clamp(b);
 }
 
-__device__ inline color ray_color(const ray& r, hittable_list** world)
+__device__ inline color ray_color(const ray& r, const hittable_list** world, curandState* local_rand_state)
 {
-	hit_record rec;
-	if ((*world)->hit(r, interval(0, infinity), rec))
-		return 0.5 * (rec.normal + color(1, 1, 1));
+	ray current_ray = r;
+	double current_attenuation = 1.0;
 
-	vec3 unit_direction = unit_vector(r.direction());
-	auto a = 0.5 * (unit_direction.y() + 1.0);
-	return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+	for (size_t i = 0; i < MAX_DEPTH; ++i)
+	{
+		hit_record rec;
+		if ((*world)->hit(current_ray, interval(0.001, infinity), rec))
+		{
+			vec3 direction = rec.normal + random_unit_vector(local_rand_state);
+			current_ray = ray(rec.p, direction);
+			current_attenuation *= 0.7;
+		}
+		else
+		{
+			vec3 unit_direction = unit_vector(current_ray.direction());
+			auto a = 0.5 * (unit_direction.y() + 1.0);
+			auto c = (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+			return current_attenuation * c;
+		}
+	}
+
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	return color(0, 0, 0);
 }
 
 #endif

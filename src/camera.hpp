@@ -35,7 +35,7 @@ public:
 	}
 
 	// Get a randomly sampled camera ray for the pixel at location i,j.
-	__device__ ray get_ray(curandState& local_rand_state, size_t i, size_t j) const
+	__device__ ray get_ray(curandState* local_rand_state, size_t i, size_t j) const
 	{
 		auto pixel_center = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
 		auto pixel_sample = pixel_center + pixel_sample_square(local_rand_state);
@@ -53,7 +53,7 @@ private:
 
 	point3 m_camera_center = point3(0, 0, 0);
 
-	__device__ vec3 pixel_sample_square(curandState& local_rand_state) const
+	__device__ vec3 pixel_sample_square(curandState* local_rand_state) const
 	{
 		// Returns a random point in the square surrounding a pixel at the origin.
 		auto px = -0.5 + random_double(local_rand_state);

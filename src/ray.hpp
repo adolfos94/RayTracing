@@ -3,6 +3,8 @@
 
 #include "vec3.hpp"
 
+constexpr size_t MAX_DEPTH = 50;   // Maximum number of ray bounces into scene
+
 class ray
 {
 public:

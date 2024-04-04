@@ -49,6 +49,16 @@ public:
 	{
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
+
+	__device__ static vec3 random(curandState* local_rand_state)
+	{
+		return vec3(random_double(local_rand_state), random_double(local_rand_state), random_double(local_rand_state));
+	}
+
+	__device__ static vec3 random(curandState* local_rand_state, double min, double max)
+	{
+		return vec3(random_double(local_rand_state, min, max), random_double(local_rand_state, min, max), random_double(local_rand_state, min, max));
+	}
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -108,6 +118,30 @@ __device__ inline vec3 cross(const vec3& u, const vec3& v)
 __device__ inline vec3 unit_vector(vec3 v)
 {
 	return v / v.length();
+}
+
+__device__ inline vec3 random_in_unit_sphere(curandState* local_rand_state)
+{
+	while (true)
+	{
+		auto p = vec3::random(local_rand_state, -1, 1);
+		if (p.length_squared() < 1)
+			return p;
+	}
+}
+
+__device__ inline vec3 random_unit_vector(curandState* local_rand_state)
+{
+	return unit_vector(random_in_unit_sphere(local_rand_state));
+}
+
+__device__ inline vec3 random_on_hemisphere(const vec3& normal, curandState* local_rand_state)
+{
+	vec3 on_unit_sphere = random_unit_vector(local_rand_state);
+	if (dot(on_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
+		return on_unit_sphere;
+	else
+		return -on_unit_sphere;
 }
 
 #endif
