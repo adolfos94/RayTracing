@@ -63,8 +63,8 @@ __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curand
 	color pixel_color(0, 0, 0);
 	for (size_t s = 0; s < SAMPLES_PER_PIXEL; ++s)
 	{
-		ray ray = (*d_camera)->get_ray(&local_rand_state, i, j);
-		pixel_color += ray_color(ray, d_world, &local_rand_state);
+		ray ray = (*d_camera)->get_ray(i, j, &local_rand_state);
+		pixel_color += (*d_camera)->ray_color(ray, d_world, &local_rand_state);
 	}
 	sample_color(SAMPLES_PER_PIXEL, pixel_color);
 

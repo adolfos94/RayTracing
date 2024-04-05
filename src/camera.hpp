@@ -5,6 +5,7 @@
 #include "ray.hpp"
 
 constexpr size_t SAMPLES_PER_PIXEL = 500; // Count of random samples for each pixel
+constexpr size_t MAX_DEPTH = 50; // Maximum number of ray bounces into scene
 
 class camera
 {
@@ -58,7 +59,7 @@ public:
 
 	// Get a randomly-sampled camera ray for the pixel at location i,j,
 	// originating from the camera defocus disk.
-	__device__ ray get_ray(curandState* local_rand_state, size_t i, size_t j) const
+	__device__ ray get_ray(size_t i, size_t j, curandState* local_rand_state) const
 	{
 		auto pixel_center = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
 		auto pixel_sample = pixel_center + pixel_sample_square(local_rand_state);
@@ -67,6 +68,38 @@ public:
 		auto ray_direction = pixel_sample - ray_origin;
 
 		return ray(ray_origin, ray_direction);
+	}
+
+	__device__ color ray_color(const ray& r, const hittable_list** world, curandState* local_rand_state)
+	{
+		ray current_ray = r;
+		vec3 current_attenuation = vec3(1.0, 1.0, 1.0);
+
+		for (size_t i = 0; i < MAX_DEPTH; ++i)
+		{
+			hit_record rec;
+			if ((*world)->hit(current_ray, interval(0.001, infinity), rec))
+			{
+				ray scattered;
+				vec3 attenuation;
+				if (rec.mat->scatter(current_ray, rec, attenuation, scattered, local_rand_state))
+				{
+					current_ray = scattered;
+					current_attenuation *= attenuation;
+				}
+				else return color();
+			}
+			else
+			{
+				vec3 unit_direction = unit_vector(current_ray.direction());
+				auto a = 0.5 * (unit_direction.y() + 1.0);
+				auto c = (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+				return current_attenuation * c;
+			}
+		}
+
+		// If we've exceeded the ray bounce limit, no more light is gathered.
+		return color();
 	}
 
 private:
