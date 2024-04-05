@@ -6,7 +6,8 @@
 class sphere : public hittable
 {
 public:
-	__device__ sphere(point3 _center, double _radius) : center(_center), radius(_radius) {}
+	__device__ sphere(point3 _center, double _radius, material* _mat) :
+		center(_center), radius(_radius), mat(_mat) {}
 
 	__device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const override
 	{
@@ -23,7 +24,7 @@ public:
 
 		// Find the nearest root that lies in the acceptable range.
 		auto root = (-half_b - sqrtd) / a;
-		if (!ray_t.surrounds(root)) 
+		if (!ray_t.surrounds(root))
 		{
 			root = (-half_b + sqrtd) / a;
 			if (!ray_t.surrounds(root))
@@ -34,6 +35,7 @@ public:
 		rec.p = r.at(rec.t);
 		vec3 outward_normal = (rec.p - center) / radius;
 		rec.set_face_normal(r, outward_normal);
+		rec.mat = mat;
 
 		return true;
 	}
@@ -41,6 +43,7 @@ public:
 private:
 	point3 center;
 	double radius;
+	material* mat;
 };
 
 #endif

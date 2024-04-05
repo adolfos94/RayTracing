@@ -35,6 +35,14 @@ public:
 		return *this;
 	}
 
+	__device__ vec3& vec3::operator*=(const vec3& v)
+	{
+		e[0] *= v.e[0];
+		e[1] *= v.e[1];
+		e[2] *= v.e[2];
+		return *this;
+	}
+
 	__device__ vec3& operator/=(double t)
 	{
 		return *this *= 1 / t;
@@ -48,6 +56,13 @@ public:
 	__device__ double length_squared() const
 	{
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
+	}
+
+	// Return true if the vector is close to zero in all dimensions.
+	__device__ bool near_zero() const
+	{
+		auto s = 1e-8;
+		return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
 	}
 
 	__device__ static vec3 random(curandState* local_rand_state)
@@ -142,6 +157,11 @@ __device__ inline vec3 random_on_hemisphere(const vec3& normal, curandState* loc
 		return on_unit_sphere;
 	else
 		return -on_unit_sphere;
+}
+
+__device__ inline vec3 reflect(const vec3& v, const vec3& n)
+{
+	return v - 2 * dot(v, n) * n;
 }
 
 #endif

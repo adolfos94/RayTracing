@@ -5,8 +5,18 @@ __global__ void world_kernel(hittable_list** d_world, size_t num_objects)
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
 		*d_world = new hittable_list(num_objects);
-		(*d_world)->objects[0] = new sphere(vec3(0, 0, -1), 0.5);
-		(*d_world)->objects[1] = new sphere(vec3(0, -100.5, -1), 100);
+
+		(*d_world)->objects[0] = new sphere(vec3(0, 0, -1), 0.5,
+			new lambertian(vec3(0.8, 0.3, 0.3)));
+
+		(*d_world)->objects[1] = new sphere(vec3(0, -100.5, -1), 100,
+			new lambertian(vec3(0.8, 0.8, 0.0)));
+
+		(*d_world)->objects[2] = new sphere(vec3(1, 0, -1), 0.5,
+			new metal(vec3(0.8, 0.6, 0.2)));
+
+		(*d_world)->objects[3] = new sphere(vec3(-1, 0, -1), 0.5,
+			new metal(vec3(0.8, 0.8, 0.8)));
 	}
 }
 
@@ -66,7 +76,7 @@ int main()
 	// Create world with CUDA
 	hittable_list** d_world;
 	checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
-	world_kernel << <1, 1 >> > (d_world, 2);
+	world_kernel << <1, 1 >> > (d_world, 4);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 

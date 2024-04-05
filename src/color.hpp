@@ -38,16 +38,21 @@ __device__ inline void sample_color(const size_t samples_per_pixel, color& pixel
 __device__ inline color ray_color(const ray& r, const hittable_list** world, curandState* local_rand_state)
 {
 	ray current_ray = r;
-	double current_attenuation = 1.0;
+	vec3 current_attenuation = vec3(1.0, 1.0, 1.0);
 
 	for (size_t i = 0; i < MAX_DEPTH; ++i)
 	{
 		hit_record rec;
 		if ((*world)->hit(current_ray, interval(0.001, infinity), rec))
 		{
-			vec3 direction = rec.normal + random_unit_vector(local_rand_state);
-			current_ray = ray(rec.p, direction);
-			current_attenuation *= 0.7;
+			ray scattered;
+			vec3 attenuation;
+			if (rec.mat->scatter(current_ray, rec, attenuation, scattered, local_rand_state))
+			{
+				current_ray = scattered;
+				current_attenuation *= attenuation;
+			}
+			else return color();
 		}
 		else
 		{
@@ -59,7 +64,7 @@ __device__ inline color ray_color(const ray& r, const hittable_list** world, cur
 	}
 
 	// If we've exceeded the ray bounce limit, no more light is gathered.
-	return color(0, 0, 0);
+	return color();
 }
 
 #endif
