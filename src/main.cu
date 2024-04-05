@@ -6,17 +6,15 @@ __global__ void world_kernel(hittable_list** d_world, size_t num_objects)
 	{
 		*d_world = new hittable_list(num_objects);
 
-		(*d_world)->objects[0] = new sphere(vec3(0, 0, -1), 0.5,
-			new lambertian(vec3(0.8, 0.3, 0.3)));
+		auto material_ground = new lambertian(vec3(0.8, 0.8, 0.0));
+		auto material_center = new lambertian(vec3(0.7, 0.3, 0.3));
+		auto material_left = new metal(vec3(0.8, 0.8, 0.8), 0.3);
+		auto material_right = new metal(vec3(0.8, 0.6, 0.2), 1.0);
 
-		(*d_world)->objects[1] = new sphere(vec3(0, -100.5, -1), 100,
-			new lambertian(vec3(0.8, 0.8, 0.0)));
-
-		(*d_world)->objects[2] = new sphere(vec3(1, 0, -1), 0.5,
-			new metal(vec3(0.8, 0.6, 0.2)));
-
-		(*d_world)->objects[3] = new sphere(vec3(-1, 0, -1), 0.5,
-			new metal(vec3(0.8, 0.8, 0.8)));
+		(*d_world)->objects[0] = new sphere(point3(0.0, -100.5, -1.0), 100.0, material_ground);
+		(*d_world)->objects[1] = new sphere(point3(0.0, 0.0, -1.0), 0.5, material_center);
+		(*d_world)->objects[2] = new sphere(point3(-1.0, 0.0, -1.0), 0.5, material_left);
+		(*d_world)->objects[3] = new sphere(point3(1.0, 0.0, -1.0), 0.5, material_right);
 	}
 }
 
@@ -81,8 +79,8 @@ int main()
 	checkCudaErrors(cudaDeviceSynchronize());
 
 	// Create camera
-	size_t width = 1280;
-	size_t height = 720;
+	size_t width = 1280 * 1;
+	size_t height = 720 * 1;
 	camera** d_camera;
 	checkCudaErrors(cudaMalloc(&d_camera, sizeof(camera**)));
 	camera_kernel << <1, 1 >> > (d_camera, width, height);
