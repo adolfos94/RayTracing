@@ -26,8 +26,11 @@ __global__ void camera_kernel(camera** d_camera, size_t width, size_t height)
 		*d_camera = new camera(width, height);
 
 		(*d_camera)->vfov = 20;
-		(*d_camera)->lookfrom = point3(-2, 2, 1);
-		(*d_camera)->lookat = point3(0, 0, -1);
+		(*d_camera)->lookfrom = point3(13, 2, 3);
+		(*d_camera)->lookat = point3(0, 0, 0);
+
+		(*d_camera)->defocus_angle = 0.6;
+		(*d_camera)->focus_dist = 10.0;
 
 		(*d_camera)->initialize();
 	}

@@ -135,6 +135,16 @@ __device__ inline vec3 unit_vector(vec3 v)
 	return v / v.length();
 }
 
+__device__ inline vec3 random_in_unit_disk(curandState* local_rand_state)
+{
+	while (true)
+	{
+		auto p = vec3(random_double(local_rand_state, -1, 1), random_double(local_rand_state, -1, 1), 0);
+		if (p.length_squared() < 1)
+			return p;
+	}
+}
+
 __device__ inline vec3 random_in_unit_sphere(curandState* local_rand_state)
 {
 	while (true)
