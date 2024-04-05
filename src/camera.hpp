@@ -13,24 +13,39 @@ public:
 	// Camera params
 	size_t image_width = 1280; // Rendered image width
 	size_t image_height = 720; // Rendered image height
+	double vfov = 90; // Vertical view angle (field of view)
+	point3 lookfrom = point3(0, 0, -1); // Point camera is looking from
+	point3 lookat = point3(0, 0, 0); // Point camera is looking at
+	const vec3 vup = vec3(0, 1, 0); // Camera-relative "up" direction
 
-	__device__ camera(size_t width, size_t height) : image_width(width), image_height(height)
+	__device__ camera(size_t width, size_t height) : image_width(width), image_height(height) {}
+
+	__device__ void initialize()
 	{
-		auto focal_length = 1.0;
-		auto viewport_height = 2.0;
+		m_camera_center = lookfrom;
+
+		// Determine viewport dimensions.
+		auto focal_length = (lookfrom - lookat).length();
+		auto theta = degrees_to_radians(vfov);
+		auto h = tan(theta / 2);
+		auto viewport_height = 2 * h * focal_length;
 		auto viewport_width = viewport_height * (static_cast<double>(image_width) / image_height);
 
+		// Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+		m_w = unit_vector(lookfrom - lookat);
+		m_u = unit_vector(cross(vup, m_w));
+		m_v = cross(m_w, m_u);
+
 		// Calculate the vectors across the horizontal and down the vertical viewport edges.
-		auto viewport_u = vec3(viewport_width, 0, 0);
-		auto viewport_v = vec3(0, -viewport_height, 0);
+		vec3 viewport_u = viewport_width * m_u;    // Vector across viewport horizontal edge
+		vec3 viewport_v = viewport_height * -m_v;  // Vector down viewport vertical edge
 
 		// Calculate the horizontal and vertical delta vectors from pixel to pixel.
 		m_pixel_delta_u = viewport_u / image_width;
 		m_pixel_delta_v = viewport_v / image_height;
 
 		// Calculate the location of the upper left pixel.
-		auto viewport_upper_left = m_camera_center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
-
+		auto viewport_upper_left = m_camera_center - (focal_length * m_w) - viewport_u / 2 - viewport_v / 2;
 		m_pixel00_loc = viewport_upper_left + 0.5 * (m_pixel_delta_u + m_pixel_delta_v);
 	}
 
@@ -47,11 +62,11 @@ public:
 	}
 
 private:
-	vec3 m_pixel_delta_u;
-	vec3 m_pixel_delta_v;
-	vec3 m_pixel00_loc;
-
-	point3 m_camera_center = point3(0, 0, 0);
+	point3 m_camera_center; // Camera center
+	vec3 m_pixel_delta_u; // Offset to pixel to the right
+	vec3 m_pixel_delta_v; // Offset to pixel below
+	vec3 m_pixel00_loc; // Location of pixel 0, 0
+	vec3 m_u, m_v, m_w; // Camera frame basis vectors
 
 	__device__ vec3 pixel_sample_square(curandState* local_rand_state) const
 	{

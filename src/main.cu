@@ -6,15 +6,16 @@ __global__ void world_kernel(hittable_list** d_world, size_t num_objects)
 	{
 		*d_world = new hittable_list(num_objects);
 
-		auto material_ground = new lambertian(vec3(0.8, 0.8, 0.0));
-		auto material_center = new lambertian(vec3(0.7, 0.3, 0.3));
-		auto material_left = new metal(vec3(0.8, 0.8, 0.8), 0.3);
-		auto material_right = new metal(vec3(0.8, 0.6, 0.2), 1.0);
+		auto material_ground = new lambertian(color(0.8, 0.8, 0.0));
+		auto material_center = new lambertian(color(0.1, 0.2, 0.5));
+		auto material_left = new dielectric(1.5);
+		auto material_right = new metal(color(0.8, 0.6, 0.2), 0.0);
 
 		(*d_world)->objects[0] = new sphere(point3(0.0, -100.5, -1.0), 100.0, material_ground);
 		(*d_world)->objects[1] = new sphere(point3(0.0, 0.0, -1.0), 0.5, material_center);
 		(*d_world)->objects[2] = new sphere(point3(-1.0, 0.0, -1.0), 0.5, material_left);
-		(*d_world)->objects[3] = new sphere(point3(1.0, 0.0, -1.0), 0.5, material_right);
+		(*d_world)->objects[3] = new sphere(point3(-1.0, 0.0, -1.0), -0.4, material_left);
+		(*d_world)->objects[4] = new sphere(point3(1.0, 0.0, -1.0), 0.5, material_right);
 	}
 }
 
@@ -23,6 +24,12 @@ __global__ void camera_kernel(camera** d_camera, size_t width, size_t height)
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
 		*d_camera = new camera(width, height);
+
+		(*d_camera)->vfov = 20;
+		(*d_camera)->lookfrom = point3(-2, 2, 1);
+		(*d_camera)->lookat = point3(0, 0, -1);
+
+		(*d_camera)->initialize();
 	}
 }
 
@@ -36,7 +43,7 @@ __global__ void random_kernel(curandState* state, size_t width, size_t height)
 
 	int idx = j * width + i;
 
-	curand_init(1984, idx, 0, &state[idx]);
+	curand_init(1234, idx, 0, &state[idx]);
 }
 
 __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curandState* rand_state, image d_image)
@@ -74,7 +81,7 @@ int main()
 	// Create world with CUDA
 	hittable_list** d_world;
 	checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
-	world_kernel << <1, 1 >> > (d_world, 4);
+	world_kernel << <1, 1 >> > (d_world, 5);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 

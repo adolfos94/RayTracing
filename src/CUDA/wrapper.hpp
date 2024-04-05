@@ -7,6 +7,7 @@
 #include "geometries/sphere.hpp"
 #include "materials/lambertian.hpp"
 #include "materials/metal.hpp"
+#include "materials/dielectric.hpp"
 
 #define checkCudaErrors(val) cuda::check_cuda( (val), #val, __FILE__, __LINE__ )
 
