@@ -32,7 +32,7 @@ On Windows, run like this:
     build\debug\RayTracing
 
 ## Requirements
-
+Install
 - [CUDA](https://developer.nvidia.com/cuda-toolkit)
 
 ### ReRun
