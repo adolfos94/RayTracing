@@ -1,50 +1,40 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <limits>
+#include <memory>
 #include <random>
-#include <vector>
+
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <curand_kernel.h>
+#include <device_launch_parameters.h>
 
 #include <rerun.hpp>
 #include <spdlog/spdlog.h>
 
 // Constants
-constexpr double infinity = std::numeric_limits<double>::infinity();
-constexpr double pi = 3.1415926535897932385;
+__constant__ const double infinity = std::numeric_limits<double>::infinity();
+__constant__ const double pi = 3.1415926535897932385;
 
 // Utility Functions
 
-/// <summary>
-/// Converts degrees into radians
-/// </summary>
-/// <param name="degrees"></param>
-/// <returns></returns>
-inline double degrees_to_radians(double degrees)
+__device__ inline double degrees_to_radians(double degrees)
 {
 	return degrees * pi / 180.0;
 }
 
-/// <summary>
-/// Returns a random real number in [0.0, 1.0).
-/// </summary>
-/// <returns></returns>
-inline double random_double()
+__device__ inline double random_double(curandState* local_rand_state)
 {
-	static std::default_random_engine generator;
-	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
-	return distribution(generator);
+	// Returns a random real in [0,1).
+	return curand_uniform(local_rand_state);
 }
 
-/// <summary>
-/// Returns a random real number in [min,max).
-/// </summary>
-/// <param name="min"></param>
-/// <param name="max"></param>
-/// <returns></returns>
-inline double random_double(double min, double max)
+__device__ inline double random_double(curandState* local_rand_state, double min, double max)
 {
-	return min + (max - min) * random_double();
+	// Returns a random real in [min,max).
+	return min + (max - min) * random_double(local_rand_state);
 }
 
 // Structs
@@ -52,12 +42,14 @@ struct image
 {
 	size_t width = 0;
 	size_t height = 0;
-	std::vector<uint8_t> data;
+	size_t size = 0;
+	uint8_t* data = nullptr;
 
 	image() {};
 
 	image(const size_t w, const size_t h, uint8_t val = 0) : width(w), height(h)
 	{
-		data.resize(width * height * 3, val);
+		size = width * height * 3;
+		data = new uint8_t[size]();
 	}
 };

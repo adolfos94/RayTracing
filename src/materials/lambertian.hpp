@@ -6,11 +6,16 @@
 class lambertian : public material
 {
 public:
-	lambertian(const color& a) : albedo(a) {}
+	__device__ lambertian(const vec3& a) : albedo(a) {}
 
-	bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override
+	__device__ bool scatter(
+		const ray& r_in,
+		const hit_record& rec,
+		vec3& attenuation,
+		ray& scattered,
+		curandState* local_rand_state) const override
 	{
-		auto scatter_direction = rec.normal + random_unit_vector();
+		auto scatter_direction = rec.normal + random_unit_vector(local_rand_state);
 
 		// Catch degenerate scatter direction
 		if (scatter_direction.near_zero())
@@ -23,7 +28,7 @@ public:
 	}
 
 private:
-	color albedo;
+	vec3 albedo;
 };
 
 #endif

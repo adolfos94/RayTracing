@@ -1,9 +1,10 @@
 <center>
 
-# Ray Tracing
+# Ray Tracing in CUDA
 
-<img src="https://img.shields.io/badge/CMake-%23064F8C?style=for-the-badge&logo=cmake"/>
-<img src="https://img.shields.io/badge/C%2B%2B-%2300599C?style=for-the-badge&logo=cplusplus"/>
+![CMake](https://img.shields.io/badge/CMake-%23064F8C?style=for-the-badge&logo=cmake)
+![C++](https://img.shields.io/badge/C%2B%2B-%2300599C?style=for-the-badge&logo=cplusplus)
+![CUDA](https://img.shields.io/badge/CUDA-%2376B900?style=for-the-badge&logo=nvidia&logoColor=white)
 
 This is my implementation of the [Ray Tracing in One Weekend](https://raytracing.github.io/v3/books/RayTracingInOneWeekend.html) book series with [ReRun](https://www.rerun.io/) as visualization tool.
 
@@ -22,7 +23,7 @@ run the following commands to create the debug version of every executable:
 
 ## Running The Programs
 
-On Linux or OSX, from the terminal, run like this:
+On Linux, from the terminal, run like this:
 
     $ build/RayTracing
 
@@ -31,6 +32,8 @@ On Windows, run like this:
     build\debug\RayTracing
 
 ## Requirements
+
+- [CUDA](https://developer.nvidia.com/cuda-toolkit)
 
 ### ReRun
 
@@ -42,5 +45,3 @@ On Windows, run like this:
 
 - Complete book series.
   - [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
-- CUDA
-- OptiX

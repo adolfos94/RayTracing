@@ -2,23 +2,14 @@
 #define SPHERE_H
 
 #include "hittable.hpp"
-#include "vec3.hpp"
 
 class sphere : public hittable
 {
 public:
-	sphere(
-		const point3 _center,
-		const double _radius,
-		std::shared_ptr<material> _material,
-		std::optional<std::string> _name = std::nullopt) :
-		center(_center), radius(_radius), mat(_material)
-	{
-		if (_name.has_value())
-			name = _name.value();
-	}
+	__device__ sphere(point3 _center, double _radius, material* _mat) :
+		center(_center), radius(_radius), mat(_mat) {}
 
-	bool hit(const ray& r, const interval& ray_t, hit_record& rec) const override
+	__device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const override
 	{
 		vec3 oc = r.origin() - center;
 		auto a = r.direction().length_squared();
@@ -42,18 +33,17 @@ public:
 
 		rec.t = root;
 		rec.p = r.at(rec.t);
-		rec.set_face_normal(r, (rec.p - center) / radius);
+		vec3 outward_normal = (rec.p - center) / radius;
+		rec.set_face_normal(r, outward_normal);
 		rec.mat = mat;
 
 		return true;
 	}
 
 private:
-
 	point3 center;
 	double radius;
-	std::shared_ptr<material> mat;
-	std::string name;
+	material* mat;
 };
 
 #endif
