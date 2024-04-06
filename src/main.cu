@@ -1,21 +1,61 @@
 #include "cuda/wrapper.hpp"
 
-__global__ void world_kernel(hittable_list** d_world, size_t num_objects)
+__global__ void world_kernel(hittable_list** d_world)
 {
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
-		*d_world = new hittable_list(num_objects);
+		(*d_world) = new hittable_list(4 + 22 * 22);
 
-		auto material_ground = new lambertian(color(0.8, 0.8, 0.0));
-		auto material_center = new lambertian(color(0.1, 0.2, 0.5));
-		auto material_left = new dielectric(1.5);
-		auto material_right = new metal(color(0.8, 0.6, 0.2), 0.0);
+		auto ground_material = new lambertian(color(0.5, 0.5, 0.5));
+		(*d_world)->add(new sphere(point3(0, -1000, 0), 1000, ground_material));
 
-		(*d_world)->objects[0] = new sphere(point3(0.0, -100.5, -1.0), 100.0, material_ground);
-		(*d_world)->objects[1] = new sphere(point3(0.0, 0.0, -1.0), 0.5, material_center);
-		(*d_world)->objects[2] = new sphere(point3(-1.0, 0.0, -1.0), 0.5, material_left);
-		(*d_world)->objects[3] = new sphere(point3(-1.0, 0.0, -1.0), -0.4, material_left);
-		(*d_world)->objects[4] = new sphere(point3(1.0, 0.0, -1.0), 0.5, material_right);
+		curandState local_rand_state;
+		curand_init(1234, 0, 0, &local_rand_state);
+
+		for (int a = -11; a < 11; a++)
+		{
+			for (int b = -11; b < 11; b++)
+			{
+				auto choose_mat = random_double(&local_rand_state);
+				point3 center(a + 0.9 * random_double(&local_rand_state), 0.2, b + 0.9 * random_double(&local_rand_state));
+
+				if ((center - point3(4, 0.2, 0)).length() > 0.9)
+				{
+					material* sphere_material = nullptr;
+
+					if (choose_mat < 0.8)
+					{
+						// diffuse
+						auto albedo = color::random(&local_rand_state) * color::random(&local_rand_state);
+						sphere_material = new lambertian(albedo);
+						(*d_world)->add(new sphere(center, 0.2, sphere_material));
+					}
+					else if (choose_mat < 0.95)
+					{
+						// metal
+						auto albedo = color::random(&local_rand_state, 0.5, 1);
+						auto fuzz = random_double(&local_rand_state, 0, 0.5);
+						sphere_material = new metal(albedo, fuzz);
+						(*d_world)->add(new sphere(center, 0.2, sphere_material));
+					}
+					else
+					{
+						// glass
+						sphere_material = new dielectric(1.5);
+						(*d_world)->add(new sphere(center, 0.2, sphere_material));
+					}
+				}
+			}
+		}
+
+		auto material1 = new dielectric(1.5);
+		(*d_world)->add(new sphere(point3(0, 1, 0), 1.0, material1));
+
+		auto material2 = new lambertian(color(0.4, 0.2, 0.1));
+		(*d_world)->add(new sphere(point3(-4, 1, 0), 1.0, material2));
+
+		auto material3 = new metal(color(0.7, 0.6, 0.5), 0.0);
+		(*d_world)->add(new sphere(point3(4, 1, 0), 1.0, material3));
 	}
 }
 
@@ -84,13 +124,13 @@ int main()
 	// Create world with CUDA
 	hittable_list** d_world;
 	checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
-	world_kernel << <1, 1 >> > (d_world, 5);
+	world_kernel << <1, 1 >> > (d_world);
 	checkCudaErrors(cudaGetLastError());
 	checkCudaErrors(cudaDeviceSynchronize());
 
 	// Create camera
-	size_t width = 1280 * 1;
-	size_t height = 720 * 1;
+	size_t width = 1280;
+	size_t height = 720;
 	camera** d_camera;
 	checkCudaErrors(cudaMalloc(&d_camera, sizeof(camera**)));
 	camera_kernel << <1, 1 >> > (d_camera, width, height);
