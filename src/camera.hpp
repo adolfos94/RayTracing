@@ -78,28 +78,24 @@ public:
 		for (size_t i = 0; i < MAX_DEPTH; ++i)
 		{
 			hit_record rec;
-			if ((*world)->hit(current_ray, interval(0.001, infinity), rec))
-			{
-				ray scattered;
-				vec3 attenuation;
-				if (rec.mat->scatter(current_ray, rec, attenuation, scattered, local_rand_state))
-				{
-					current_ray = scattered;
-					current_attenuation *= attenuation;
-				}
-				else return color();
-			}
-			else
-			{
-				vec3 unit_direction = unit_vector(current_ray.direction());
-				auto a = 0.5 * (unit_direction.y() + 1.0);
-				auto c = (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
-				return current_attenuation * c;
-			}
+			if (!(*world)->hit(current_ray, interval(0.001, infinity), rec))
+				break;
+
+			ray scattered;
+			vec3 attenuation;
+
+			if (!rec.mat->scatter(current_ray, rec, attenuation, scattered, local_rand_state))
+				break;
+
+			current_ray = scattered;
+			current_attenuation *= attenuation;
 		}
 
 		// If we've exceeded the ray bounce limit, no more light is gathered.
-		return color();
+		vec3 unit_direction = unit_vector(current_ray.direction());
+		auto a = 0.5 * (unit_direction.y() + 1.0);
+		auto c = (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+		return current_attenuation * c;
 	}
 
 private:
