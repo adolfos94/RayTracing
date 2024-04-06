@@ -1,6 +1,6 @@
 <center>
 
-# Ray Tracing in CUDA
+# Ray Tracing on CUDA
 
 ![CMake](https://img.shields.io/badge/CMake-%23064F8C?style=for-the-badge&logo=cmake)
 ![C++](https://img.shields.io/badge/C%2B%2B-%2300599C?style=for-the-badge&logo=cplusplus)
