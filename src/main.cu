@@ -28,7 +28,11 @@ __global__ void world_kernel(hittable_list** d_world)
 						// diffuse
 						auto albedo = color::random(&local_rand_state) * color::random(&local_rand_state);
 						sphere_material = new lambertian(albedo);
-						(*d_world)->add(new sphere(center, 0.2, sphere_material));
+
+						// moving spheres
+						auto center2 = center + vec3(0, random_double(&local_rand_state, 0.0, 0.5), 0);
+
+						(*d_world)->add(new sphere(center, center2, 0.2, sphere_material));
 					}
 					else if (choose_mat < 0.95)
 					{

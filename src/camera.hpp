@@ -57,8 +57,8 @@ public:
 		m_defocus_disk_v = m_v * defocus_radius;
 	}
 
-	// Get a randomly-sampled camera ray for the pixel at location i,j,
-	// originating from the camera defocus disk.
+	// Construct a camera ray originating from the defocus disk and directed at a randomly
+	// sampled point around the pixel location i, j.
 	__device__ ray get_ray(size_t i, size_t j, curandState* local_rand_state) const
 	{
 		auto pixel_center = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
@@ -66,8 +66,9 @@ public:
 
 		auto ray_origin = (defocus_angle <= 0) ? m_camera_center : defocus_disk_sample(local_rand_state);
 		auto ray_direction = pixel_sample - ray_origin;
+		auto ray_time = random_double(local_rand_state);
 
-		return ray(ray_origin, ray_direction);
+		return ray(ray_origin, ray_direction, ray_time);
 	}
 
 	__device__ color ray_color(const ray& r, const hittable_list** world, curandState* local_rand_state)
