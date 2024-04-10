@@ -23,12 +23,12 @@ public:
 			return;
 
 		objects[idx++] = object;
+
+		bbox = aabb(bbox, object->bounding_box());
 	}
 
 	__device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const
 	{
-		
-
 		hit_record temp_rec;
 		bool hit_anything = false;
 		auto closest_so_far = ray_t.max;
@@ -48,6 +48,13 @@ public:
 
 		return hit_anything;
 	}
+
+	__device__ aabb bounding_box() const override
+	{
+		return bbox;
+	}
+private:
+	aabb bbox;
 };
 
 #endif
