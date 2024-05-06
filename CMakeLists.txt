@@ -6,6 +6,7 @@ project(RayTracing VERSION "1.0.0" LANGUAGES CXX CUDA)
 find_package(CUDA REQUIRED)
 find_package(spdlog REQUIRED)
 
+# Rerun
 set(RERUN_ARROW_LINK_SHARED ON)
 set(RERUN_DOWNLOAD_AND_BUILD_ARROW OFF)
 

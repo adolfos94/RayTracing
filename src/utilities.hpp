@@ -43,6 +43,12 @@ __device__ inline int random_int(curandState* local_rand_state, int min, int max
 	return int(random_double(local_rand_state, min, max + 1));
 }
 
+template <typename T> 
+__device__ inline void swap_cuda(T& a, T& b)
+{
+	T c(a); a = b; b = c;
+}
+
 // Structs
 struct image
 {

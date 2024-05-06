@@ -10,7 +10,8 @@ class bvh_node : public hittable
 {
 public:
 
-  __device__ bvh_node(curandState* local_rand_state, hittable_list list) : bvh_node(local_rand_state, list.objects, 0, list.num_objects) {}
+  __device__ bvh_node(curandState* local_rand_state, hittable_list* list) :
+    bvh_node(local_rand_state, list->objects, 0, list->num_objects) {}
 
   __device__ bvh_node(curandState* local_rand_state, hittable** objects, size_t start, size_t end)
   {
@@ -102,12 +103,12 @@ private:
       size_t min_idx = i;
       for (size_t j = i + 1; j < end; ++j)
       {
-        if(compare(objects[j], objects[min_idx]))
+        if (compare(objects[j], objects[min_idx]))
           min_idx = j;
       }
 
       if (min_idx != i)
-        std::swap(objects[i], objects[min_idx]);
+        swap_cuda(objects[i], objects[min_idx]);
     }
   }
 };

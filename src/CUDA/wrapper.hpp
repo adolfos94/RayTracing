@@ -14,17 +14,17 @@
 
 namespace cuda
 {
-	constexpr size_t BLOCK_SIZE = 16; // Thread block size
+  constexpr size_t BLOCK_SIZE = 16; // Thread block size
 
-	inline void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
-	{
-		if (result != cudaSuccess)
-		{
-			spdlog::error("[CUDA] Error: {} at {}:{} '{}'",
-				cudaGetErrorString(result), file, line, func);
+  inline void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
+  {
+    if (result != cudaSuccess)
+    {
+      spdlog::error("[CUDA] Error: {} at {}:{} '{}'",
+        cudaGetErrorString(result), file, line, func);
 
-			cudaDeviceReset();
-			exit(-1);
-		}
-	}
+      cudaDeviceReset();
+      exit(-1);
+    }
+  }
 }

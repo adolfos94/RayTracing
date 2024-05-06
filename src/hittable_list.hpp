@@ -3,58 +3,57 @@
 
 #include "hittable.hpp"
 
+namespace cuda
+{
+  constexpr size_t HITTABLES_SIZE = 500; // Number of Hittable objects
+};
+
 class hittable_list : public hittable
 {
 public:
 
-	hittable** objects = nullptr;
-	size_t num_objects = 0;
+  hittable* objects[cuda::HITTABLES_SIZE];
+  size_t num_objects = 0;
 
-	__device__ hittable_list(size_t N) : num_objects(N)
-	{
-		objects = new hittable * [num_objects]();
-	}
+  __device__ hittable_list() {}
 
-	__device__ void add(hittable* object)
-	{
-		static size_t idx = 0;
+  __device__ hittable_list(hittable* object) { add(object); }
 
-		if (idx >= num_objects)
-			return;
+  __device__ void add(hittable* object)
+  {
+    if (num_objects >= cuda::HITTABLES_SIZE)
+      return;
 
-		objects[idx++] = object;
+    objects[num_objects++] = object;
 
-		bbox = aabb(bbox, object->bounding_box());
-	}
+    bbox = aabb(bbox, object->bounding_box());
+  }
 
-	__device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const
-	{
-		hit_record temp_rec;
-		bool hit_anything = false;
-		auto closest_so_far = ray_t.max;
+  __device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const
+  {
+    hit_record temp_rec;
+    bool hit_anything = false;
+    auto closest_so_far = ray_t.max;
 
-		for (size_t i = 0; i < num_objects; ++i)
-		{
-			if (!objects[i])
-				continue;
+    for (size_t i = 0; i < num_objects; ++i)
+    {
+      if (objects[i]->hit(r, interval(ray_t.min, closest_so_far), temp_rec))
+      {
+        hit_anything = true;
+        closest_so_far = temp_rec.t;
+        rec = temp_rec;
+      }
+    }
 
-			if (objects[i]->hit(r, interval(ray_t.min, closest_so_far), temp_rec))
-			{
-				hit_anything = true;
-				closest_so_far = temp_rec.t;
-				rec = temp_rec;
-			}
-		}
+    return hit_anything;
+  }
 
-		return hit_anything;
-	}
-
-	__device__ aabb bounding_box() const override
-	{
-		return bbox;
-	}
+  __device__ aabb bounding_box() const override
+  {
+    return bbox;
+  }
 private:
-	aabb bbox;
+  aabb bbox;
 };
 
 #endif
