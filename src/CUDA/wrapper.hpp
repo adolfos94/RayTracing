@@ -4,6 +4,7 @@
 #include "camera.hpp"
 #include "hittable_list.hpp"
 
+#include "geometries/bvh.hpp"
 #include "geometries/sphere.hpp"
 #include "materials/lambertian.hpp"
 #include "materials/metal.hpp"

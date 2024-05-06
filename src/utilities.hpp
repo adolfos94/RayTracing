@@ -25,16 +25,22 @@ __device__ inline double degrees_to_radians(double degrees)
 	return degrees * pi / 180.0;
 }
 
+// Returns a random real in [0,1).
 __device__ inline double random_double(curandState* local_rand_state)
 {
-	// Returns a random real in [0,1).
 	return curand_uniform(local_rand_state);
 }
 
+// Returns a random real in [min,max).
 __device__ inline double random_double(curandState* local_rand_state, double min, double max)
 {
-	// Returns a random real in [min,max).
 	return min + (max - min) * random_double(local_rand_state);
+}
+
+// Returns a random integer in [min,max].
+__device__ inline int random_int(curandState* local_rand_state, int min, int max)
+{
+	return int(random_double(local_rand_state, min, max + 1));
 }
 
 // Structs

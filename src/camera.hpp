@@ -71,7 +71,7 @@ public:
 		return ray(ray_origin, ray_direction, ray_time);
 	}
 
-	__device__ color ray_color(const ray& r, const hittable_list** world, curandState* local_rand_state)
+	__device__ color ray_color(const ray& r, hittable_list** world, curandState* local_rand_state) const
 	{
 		ray current_ray = r;
 		vec3 current_attenuation = vec3(1.0, 1.0, 1.0);
