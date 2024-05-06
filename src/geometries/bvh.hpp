@@ -53,7 +53,7 @@ public:
       delete right;
   }
 
-  __device__ bool hit(const ray& r, interval ray_t, hit_record& rec) const override
+  __device__ bool hit(const ray& r, const interval& ray_t, hit_record& rec) const override
   {
     if (!bbox.hit(r, ray_t))
       return false;
@@ -108,7 +108,7 @@ private:
       }
 
       if (min_idx != i)
-        swap_cuda(objects[i], objects[min_idx]);
+        cuda::swap(objects[i], objects[min_idx]);
     }
   }
 };
