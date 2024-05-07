@@ -124,6 +124,11 @@ int main()
   const auto rec = rerun::RecordingStream("RayTracing");
   rec.spawn().exit_on_failure();
 
+  // Get the current stack size.
+  size_t stackSize;
+  cudaDeviceGetLimit(&stackSize, cudaLimitStackSize);
+  cudaDeviceSetLimit(cudaLimitStackSize, stackSize << 1);
+
   // Create world with CUDA
   hittable_list** d_world;
   checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));

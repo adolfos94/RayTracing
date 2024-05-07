@@ -17,7 +17,6 @@ set(INCLUDE_DIRS
 
 set(LIBRARIES
     ${CUDA_LIBRARIES}
-    spdlog::spdlog
     rerun_sdk
 )
 

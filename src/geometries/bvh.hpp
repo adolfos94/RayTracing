@@ -13,7 +13,7 @@ public:
   __device__ bvh_node(curandState* local_rand_state, hittable_list* list) :
     bvh_node(local_rand_state, list->objects, 0, list->num_objects) {}
 
-  __device__ bvh_node(curandState* local_rand_state, hittable** objects, size_t start, size_t end)
+  __device__ bvh_node(curandState* local_rand_state, cuda::std::array<hittable*, HITTABLES_SIZE>& objects, size_t start, size_t end)
   {
     int axis = random_int(local_rand_state, 0, 2);
 
@@ -36,7 +36,8 @@ public:
     {
       sort(objects, start, end, comparator);
 
-      auto mid = start + object_span / 2;
+      auto mid = (start + object_span) / 2;
+
       left = new bvh_node(local_rand_state, objects, start, mid);
       right = new bvh_node(local_rand_state, objects, mid, end);
     }
@@ -96,8 +97,10 @@ private:
     return box_compare(a, b, 2);
   }
 
-  __device__ void sort(hittable** objects, size_t begin, size_t end, bool(*compare)(const hittable* a, const hittable* b))
+  __device__ void sort(cuda::std::array<hittable*, HITTABLES_SIZE>& objects, size_t begin, size_t end, bool(*compare)(const hittable* a, const hittable* b))
   {
+    printf("Start: %llu\t End: %llu\n", begin, end);
+
     for (size_t i = begin; i < end - 1; ++i)
     {
       size_t min_idx = i;
@@ -108,7 +111,7 @@ private:
       }
 
       if (min_idx != i)
-        cuda::swap(objects[i], objects[min_idx]);
+        cuda::std::swap(objects[i], objects[min_idx]);
     }
   }
 };

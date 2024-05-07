@@ -11,8 +11,10 @@
 #include <curand_kernel.h>
 #include <device_launch_parameters.h>
 
+#include <CUDA/std/array>
+#include <CUDA/std/utility>
+
 #include <rerun.hpp>
-#include <spdlog/spdlog.h>
 
 // Constants
 __constant__ const double infinity = std::numeric_limits<double>::infinity();
@@ -42,15 +44,6 @@ __device__ inline int random_int(curandState* local_rand_state, int min, int max
 {
   return int(random_double(local_rand_state, min, max + 1));
 }
-
-namespace cuda
-{
-  template <typename T>
-  __device__ inline void swap(T& a, T& b)
-  {
-    T c(a); a = b; b = c;
-  }
-};
 
 // Structs
 struct image

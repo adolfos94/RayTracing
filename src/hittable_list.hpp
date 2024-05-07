@@ -3,16 +3,14 @@
 
 #include "hittable.hpp"
 
-namespace cuda
-{
-  constexpr size_t HITTABLES_SIZE = 500; // Number of Hittable objects
-};
+constexpr size_t HITTABLES_SIZE = 500; // Number of Hittable objects
 
 class hittable_list : public hittable
 {
 public:
 
-  hittable* objects[cuda::HITTABLES_SIZE];
+  cuda::std::array<hittable*, HITTABLES_SIZE> objects;
+
   size_t num_objects = 0;
 
   __device__ hittable_list() {}
@@ -21,7 +19,7 @@ public:
 
   __device__ void add(hittable* object)
   {
-    if (num_objects >= cuda::HITTABLES_SIZE)
+    if (num_objects >= HITTABLES_SIZE)
       return;
 
     objects[num_objects++] = object;
