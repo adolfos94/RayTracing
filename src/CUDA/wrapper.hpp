@@ -14,12 +14,14 @@
 
 namespace cuda
 {
-  constexpr size_t BLOCK_SIZE = 32; // Thread block size
+  constexpr size_t BLOCK_SIZE = 16; // Thread block size
 
   inline void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
   {
     if (result != cudaSuccess)
     {
+      printf("[CUDA] Kernel error: %s %s %d %s\n", cudaGetErrorString(result), file, line, func);
+
       cudaDeviceReset();
       exit(-1);
     }

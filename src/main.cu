@@ -58,7 +58,7 @@ __global__ void world_kernel(hittable_list** d_world)
     auto material3 = new metal(color(0.7, 0.6, 0.5), 0.0);
     (*d_world)->add(new sphere(point3(4, 1, 0), 1.0, material3));
 
-    //*d_world = new hittable_list(new bvh_node(&local_rand_state, *d_world));
+    *d_world = new hittable_list(new bvh_node(&local_rand_state, *d_world));
   }
 }
 
@@ -127,7 +127,7 @@ int main()
   // Get the current stack size.
   size_t stackSize;
   cudaDeviceGetLimit(&stackSize, cudaLimitStackSize);
-  cudaDeviceSetLimit(cudaLimitStackSize, stackSize << 1);
+  cudaDeviceSetLimit(cudaLimitStackSize, stackSize << 2);
 
   // Create world with CUDA
   hittable_list** d_world;

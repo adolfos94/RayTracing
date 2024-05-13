@@ -13,6 +13,9 @@
 
 #include <CUDA/std/array>
 #include <CUDA/std/utility>
+#include "CUDA/std/tuple"
+
+#include "CUDA/stack.hpp"
 
 #include <rerun.hpp>
 

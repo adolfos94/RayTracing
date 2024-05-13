@@ -10,48 +10,69 @@ class bvh_node : public hittable
 {
 public:
 
-  __device__ bvh_node(curandState* local_rand_state, hittable_list* list) :
-    bvh_node(local_rand_state, list->objects, 0, list->num_objects) {}
+  __device__ bvh_node() {}
 
-  __device__ bvh_node(curandState* local_rand_state, cuda::std::array<hittable*, HITTABLES_SIZE>& objects, size_t start, size_t end)
+  __device__ bvh_node(curandState* local_rand_state, hittable_list* list)
   {
-    int axis = random_int(local_rand_state, 0, 2);
-
-    auto comparator = (axis == 0) ? box_x_compare
-      : (axis == 1) ? box_y_compare
-      : box_z_compare;
-
-    size_t object_span = end - start;
-
-    if (object_span == 1)
-    {
-      left = right = objects[start];
-    }
-    else if (object_span == 2)
-    {
-      left = objects[start];
-      right = objects[start + 1];
-    }
-    else
-    {
-      sort(objects, start, end, comparator);
-
-      auto mid = (start + object_span) / 2;
-
-      left = new bvh_node(local_rand_state, objects, start, mid);
-      right = new bvh_node(local_rand_state, objects, mid, end);
-    }
-
-    bbox = aabb(left->bounding_box(), right->bounding_box());
+    build_bst(local_rand_state, list);
   }
 
-  ~bvh_node()
+  __device__ void build_bst(curandState* local_rand_state, hittable_list* list)
   {
-    if (left != nullptr)
-      delete left;
+    auto objects = list->objects;
 
-    if (right != nullptr)
-      delete right;
+    auto bvh_nodes = cuda::Stack<bvh_node*>();
+    bvh_nodes.push(this);
+
+    auto indexes = cuda::Stack<cuda::std::tuple<size_t, size_t>>();
+    indexes.push({ 0, list->num_objects });
+
+    while (!bvh_nodes.empty())
+    {
+      auto node = bvh_nodes.top();
+      bvh_nodes.pop();
+
+      auto [start, end] = indexes.top();
+      indexes.pop();
+
+      // Build the bounding box of the span of source objects
+      for (size_t object_index = start; object_index < end; object_index++)
+      {
+        node->bbox = aabb(node->bbox, objects[object_index]->bounding_box());
+      }
+
+      auto axis = node->bbox.longest_axis();
+
+      auto comparator = (axis == 0) ? box_x_compare
+        : (axis == 1) ? box_y_compare
+        : box_z_compare;
+
+      size_t object_span = end - start;
+
+      if (object_span == 1)
+      {
+        node->left = node->right = objects[start];
+      }
+      else if (object_span == 2)
+      {
+        node->left = objects[start];
+        node->right = objects[start + 1];
+      }
+      else
+      {
+        sort(objects, start, end, comparator);
+
+        auto mid = start + object_span / 2;
+
+        node->left = new bvh_node();
+        bvh_nodes.push((bvh_node*)node->left);
+        indexes.push({ start, mid });
+
+        node->right = new bvh_node();
+        bvh_nodes.push((bvh_node*)node->right);
+        indexes.push({ mid, end });
+      }
+    }
   }
 
   __device__ bool hit(const ray& r, const interval& ray_t, hit_record& rec) const override
@@ -59,6 +80,7 @@ public:
     if (!bbox.hit(r, ray_t))
       return false;
 
+    // TODO: Traverse without recursion
     bool hit_left = left->hit(r, ray_t, rec);
     bool hit_right = right->hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec);
 
@@ -71,6 +93,7 @@ public:
   }
 
 private:
+
   hittable* left = nullptr;
   hittable* right = nullptr;
   aabb bbox;
@@ -99,8 +122,6 @@ private:
 
   __device__ void sort(cuda::std::array<hittable*, HITTABLES_SIZE>& objects, size_t begin, size_t end, bool(*compare)(const hittable* a, const hittable* b))
   {
-    printf("Start: %llu\t End: %llu\n", begin, end);
-
     for (size_t i = begin; i < end - 1; ++i)
     {
       size_t min_idx = i;
