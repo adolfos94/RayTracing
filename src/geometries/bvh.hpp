@@ -12,20 +12,21 @@ public:
 
   __device__ bvh_node() {}
 
-  __device__ bvh_node(curandState* local_rand_state, hittable_list* list)
+  __device__ bvh_node(hittable_list* list)
   {
-    build_bst(local_rand_state, list);
+    build_bst(list);
   }
 
-  __device__ void build_bst(curandState* local_rand_state, hittable_list* list)
+  __device__ void build_bst(hittable_list* list)
   {
-    auto objects = list->objects;
-
     auto bvh_nodes = cuda::Stack<bvh_node*>();
     bvh_nodes.push(this);
 
     auto indexes = cuda::Stack<cuda::std::tuple<size_t, size_t>>();
     indexes.push({ 0, list->num_objects });
+
+    // 3D Objects list
+    auto& objects = list->objects;
 
     while (!bvh_nodes.empty())
     {
@@ -80,7 +81,6 @@ public:
     if (!bbox.hit(r, ray_t))
       return false;
 
-    // TODO: Traverse without recursion
     bool hit_left = left->hit(r, ray_t, rec);
     bool hit_right = right->hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec);
 
