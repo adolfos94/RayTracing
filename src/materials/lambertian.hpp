@@ -2,11 +2,13 @@
 #define LAMBERTIAN_H
 
 #include "material.hpp"
+#include "texture.hpp"
 
 class lambertian : public material
 {
 public:
-	__device__ lambertian(const vec3& a) : albedo(a) {}
+	__device__ lambertian(const color& albedo) : tex(new solid_color(albedo)) {}
+	__device__ lambertian(texture* tex) : tex(tex) {}
 
 	__device__ bool scatter(
 		const ray& r_in,
@@ -22,13 +24,13 @@ public:
 			scatter_direction = rec.normal;
 
 		scattered = ray(rec.p, scatter_direction, r_in.time());
-		attenuation = albedo;
+		attenuation = tex->value(rec.u, rec.v, rec.p);
 
 		return true;
 	}
 
 private:
-	vec3 albedo;
+	texture* tex;
 };
 
 #endif

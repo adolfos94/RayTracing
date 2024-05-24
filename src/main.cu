@@ -6,8 +6,8 @@ __global__ void world_kernel(hittable_list** d_world)
   {
     *d_world = new hittable_list();
 
-    auto ground_material = new lambertian(color(0.5, 0.5, 0.5));
-    (*d_world)->add(new sphere(point3(0, -1000, 0), 1000, ground_material));
+    auto checker =new checker_texture(0.32, color(.2, .3, .1), color(.9, .9, .9));
+    (*d_world)->add(new sphere(point3(0, -1000, 0), 1000, new lambertian(checker)));
 
     curandState local_rand_state;
     curand_init(1234, 0, 0, &local_rand_state);
