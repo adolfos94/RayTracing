@@ -1,12 +1,12 @@
 #include "cuda/wrapper.hpp"
 
-__global__ void world_kernel(hittable_list** d_world)
+__global__ void bouncing_spheres_kernel(hittable_list** d_world)
 {
   if (threadIdx.x == 0 && blockIdx.x == 0)
   {
     *d_world = new hittable_list();
 
-    auto checker =new checker_texture(0.32, color(.2, .3, .1), color(.9, .9, .9));
+    auto checker = new checker_texture(0.32, color(.2, .3, .1), color(.9, .9, .9));
     (*d_world)->add(new sphere(point3(0, -1000, 0), 1000, new lambertian(checker)));
 
     curandState local_rand_state;
@@ -59,6 +59,18 @@ __global__ void world_kernel(hittable_list** d_world)
     (*d_world)->add(new sphere(point3(4, 1, 0), 1.0, material3));
 
     *d_world = new hittable_list(new bvh_node(*d_world));
+  }
+}
+
+__global__ void checkered_spheres_kernel(hittable_list** d_world)
+{
+  if (threadIdx.x == 0 && blockIdx.x == 0)
+  {
+    *d_world = new hittable_list();
+
+    auto checker = new checker_texture(0.32, color(.2, .3, .1), color(.9, .9, .9));
+    (*d_world)->add(new sphere(point3(0, -10, 0), 10, new lambertian(checker)));
+    (*d_world)->add(new sphere(point3(0, 10, 0), 10, new lambertian(checker)));
   }
 }
 
@@ -132,7 +144,7 @@ int main()
   // Create world with CUDA
   hittable_list** d_world;
   checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
-  world_kernel << <1, 1 >> > (d_world);
+  checkered_spheres_kernel << <1, 1 >> > (d_world);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 

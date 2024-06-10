@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 project(RayTracing VERSION "1.0.0" LANGUAGES CXX CUDA)
 
 find_package(CUDA REQUIRED)
+find_package(Stb REQUIRED)
 
 # Rerun
 set(RERUN_ARROW_LINK_SHARED ON)
