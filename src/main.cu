@@ -59,6 +59,8 @@ __global__ void bouncing_spheres_kernel(hittable_list** d_world)
     (*d_world)->add(new sphere(point3(4, 1, 0), 1.0, material3));
 
     *d_world = new hittable_list(new bvh_node(*d_world));
+
+    checkCudaErrors(cudaGetLastError());
   }
 }
 
@@ -71,6 +73,8 @@ __global__ void checkered_spheres_kernel(hittable_list** d_world)
     auto checker = new checker_texture(0.32, color(.2, .3, .1), color(.9, .9, .9));
     (*d_world)->add(new sphere(point3(0, -10, 0), 10, new lambertian(checker)));
     (*d_world)->add(new sphere(point3(0, 10, 0), 10, new lambertian(checker)));
+
+    checkCudaErrors(cudaGetLastError());
   }
 }
 
@@ -88,6 +92,8 @@ __global__ void camera_kernel(camera** d_camera, size_t width, size_t height)
     (*d_camera)->focus_dist = 10.0;
 
     (*d_camera)->initialize();
+
+    checkCudaErrors(cudaGetLastError());
   }
 }
 
@@ -102,6 +108,7 @@ __global__ void random_kernel(curandState* state, size_t width, size_t height)
   int idx = j * width + i;
 
   curand_init(1234, idx, 0, &state[idx]);
+  checkCudaErrors(cudaGetLastError());
 }
 
 __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curandState* rand_state, image d_image)
@@ -128,6 +135,8 @@ __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curand
   d_image.data[idx * 3 + 0] = static_cast<uint8_t>(pixel_color.x());
   d_image.data[idx * 3 + 1] = static_cast<uint8_t>(pixel_color.y());
   d_image.data[idx * 3 + 2] = static_cast<uint8_t>(pixel_color.z());
+
+  checkCudaErrors(cudaGetLastError());
 }
 
 int main()
@@ -145,7 +154,6 @@ int main()
   hittable_list** d_world;
   checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
   checkered_spheres_kernel << <1, 1 >> > (d_world);
-  checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
   // Create camera
@@ -154,18 +162,16 @@ int main()
   camera** d_camera;
   checkCudaErrors(cudaMalloc(&d_camera, sizeof(camera**)));
   camera_kernel << <1, 1 >> > (d_camera, width, height);
-  checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
   // Render scene with CUDA
-  dim3 blocks(width / cuda::BLOCK_SIZE + 1, height / cuda::BLOCK_SIZE + 1);
+  dim3 blocks(width / cuda::BLOCK_SIZE, height / cuda::BLOCK_SIZE);
   dim3 threads(cuda::BLOCK_SIZE, cuda::BLOCK_SIZE);
 
   // Create random state
   curandState* d_rand_state;
   checkCudaErrors(cudaMalloc(&d_rand_state, width * height * sizeof(curandState)));
   random_kernel << <blocks, threads >> > (d_rand_state, width, height);
-  checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
   // Create image
@@ -177,14 +183,11 @@ int main()
   checkCudaErrors(cudaMalloc(&d_image.data, h_image.size));
 
   render_kernel << <blocks, threads >> > (d_world, d_camera, d_rand_state, d_image);
-  checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
   checkCudaErrors(cudaMemcpy(h_image.data, d_image.data, h_image.size, cudaMemcpyDeviceToHost));
 
   rec.log_timeless("RayTracing", rerun::Image({ h_image.height, h_image.width, 3 }, h_image.data));
-
-  //cudaFree(d_img.data);
 
   return 0;
 }

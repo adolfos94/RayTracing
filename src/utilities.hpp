@@ -9,9 +9,11 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
+#include <device_functions.h>
 #include <device_launch_parameters.h>
 
 #include <CUDA/std/array>
+#include <cuda/std/atomic>
 #include <CUDA/std/utility>
 #include "CUDA/std/tuple"
 

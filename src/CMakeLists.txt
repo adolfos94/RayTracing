@@ -18,12 +18,16 @@ set(INCLUDE_DIRS
 
 set(LIBRARIES
     ${CUDA_LIBRARIES}
+    cudadevrt 
     rerun_sdk
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES 75)
+set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-G>)
