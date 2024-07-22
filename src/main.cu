@@ -78,6 +78,19 @@ __global__ void checkered_spheres_kernel(hittable_list** d_world)
   }
 }
 
+__global__ void earth_kernel(hittable_list** d_world, image* d_image)
+{
+  if (threadIdx.x == 0 && blockIdx.x == 0)
+  {
+    *d_world = new hittable_list();
+
+    auto earth_texture = new image_texture(d_image);
+    (*d_world)->add(new sphere(point3(0, 0, 0), 2, new lambertian(earth_texture)));
+
+    checkCudaErrors(cudaGetLastError());
+  }
+}
+
 __global__ void camera_kernel(camera** d_camera, size_t width, size_t height)
 {
   if (threadIdx.x == 0 && blockIdx.x == 0)
@@ -116,10 +129,10 @@ __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curand
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  if (i >= d_image.width || j >= d_image.height)
+  if (i >= d_image.width() || j >= d_image.height())
     return;
 
-  int idx = j * d_image.width + i;
+  int idx = j * d_image.width() + i;
   curandState local_rand_state = rand_state[idx];
 
   color pixel_color(0, 0, 0);
@@ -132,9 +145,10 @@ __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curand
 
   rand_state[idx] = local_rand_state;
 
-  d_image.data[idx * 3 + 0] = static_cast<uint8_t>(pixel_color.x());
-  d_image.data[idx * 3 + 1] = static_cast<uint8_t>(pixel_color.y());
-  d_image.data[idx * 3 + 2] = static_cast<uint8_t>(pixel_color.z());
+  d_image.set_pixel_data(i, j,
+    static_cast<uint8_t>(pixel_color.x()),
+    static_cast<uint8_t>(pixel_color.y()),
+    static_cast<uint8_t>(pixel_color.z()));
 
   checkCudaErrors(cudaGetLastError());
 }
@@ -177,17 +191,15 @@ int main()
   // Create image
   image h_image = image(width, height);
 
-  image d_image;
-  d_image.width = h_image.width;
-  d_image.height = h_image.height;
-  checkCudaErrors(cudaMalloc(&d_image.data, h_image.size));
+  image d_image = image(width, height);
+  checkCudaErrors(cudaMalloc(&d_image.data(), d_image.size()));
 
   render_kernel << <blocks, threads >> > (d_world, d_camera, d_rand_state, d_image);
   checkCudaErrors(cudaDeviceSynchronize());
 
-  checkCudaErrors(cudaMemcpy(h_image.data, d_image.data, h_image.size, cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(h_image.data(), d_image.data(), h_image.size(), cudaMemcpyDeviceToHost));
 
-  rec.log_timeless("RayTracing", rerun::Image({ h_image.height, h_image.width, 3 }, h_image.data));
+  rec.log_timeless("RayTracing", rerun::Image({ h_image.height(), h_image.width(), 3 }, h_image.data()));
 
   return 0;
 }

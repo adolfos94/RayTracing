@@ -2,8 +2,9 @@
 #define TEXTURE_H
 
 #include "material.hpp"
+#include "image.hpp"
 
-class texture 
+class texture
 {
 public:
   __device__ virtual ~texture() = default;
@@ -11,7 +12,7 @@ public:
   __device__ virtual color value(double u, double v, const point3& p) const = 0;
 };
 
-class solid_color : public texture 
+class solid_color : public texture
 {
 public:
   __device__ solid_color(const color& albedo) : albedo(albedo) {}
@@ -27,7 +28,7 @@ private:
   color albedo;
 };
 
-class checker_texture : public texture 
+class checker_texture : public texture
 {
 public:
   __device__ checker_texture(double scale, texture* even, texture* odd)
@@ -51,6 +52,32 @@ private:
   double inv_scale;
   texture* even = nullptr;
   texture* odd = nullptr;
+};
+
+class image_texture : public texture
+{
+public:
+  __device__ image_texture(image* image) : image(image) {}
+
+  __device__ color value(double u, double v, const point3& p) const override {
+    // If we have no texture data, then return solid cyan as a debugging aid.
+    if (!image || image->width() <= 0 || image->height() <= 0)
+      return color(0, 1, 1);
+
+    // Clamp input texture coordinates to [0,1] x [1,0]
+    u = interval(0, 1).clamp(u);
+    v = 1.0 - interval(0, 1).clamp(v);  // Flip V to image coordinates
+
+    auto i = int(u * image->width());
+    auto j = int(v * image->height());
+    auto pixel = image->pixel_data(i, j);
+
+    auto color_scale = 1.0 / 255.0;
+    return color(color_scale * pixel[0], color_scale * pixel[1], color_scale * pixel[2]);
+  }
+
+private:
+  image* image = nullptr;
 };
 
 #endif

@@ -15,7 +15,7 @@
 #include <CUDA/std/array>
 #include <cuda/std/atomic>
 #include <CUDA/std/utility>
-#include "CUDA/std/tuple"
+#include <CUDA/std/tuple>
 
 #include "CUDA/stack.hpp"
 
@@ -49,20 +49,3 @@ __device__ inline int random_int(curandState* local_rand_state, int min, int max
 {
   return int(random_double(local_rand_state, min, max + 1));
 }
-
-// Structs
-struct image
-{
-  size_t width = 0;
-  size_t height = 0;
-  size_t size = 0;
-  uint8_t* data = nullptr;
-
-  image() {};
-
-  image(const size_t w, const size_t h, uint8_t val = 0) : width(w), height(h)
-  {
-    size = width * height * 3;
-    data = new uint8_t[size]();
-  }
-};
