@@ -69,9 +69,9 @@ public:
     return true;
   }
 
-  __device__ __host__ int width() const { return (bdata == nullptr) ? 0 : image_width; }
-  __device__ __host__ int height() const { return (bdata == nullptr) ? 0 : image_height; }
-  __device__ __host__ int size() const { return (bdata == nullptr) ? 0 : image_width * image_height * bytes_per_pixel; }
+  __device__ __host__ int width() const { return (bdata == nullptr) ? 0 : image_width; } // height
+  __device__ __host__ int height() const { return (bdata == nullptr) ? 0 : image_height; } // width
+  __device__ __host__ int size() const { return (bdata == nullptr) ? 0 : image_width * image_height * bytes_per_pixel; } // size in bytes
 
   void set_width(int width) { image_width = (bdata == nullptr) ? 0 : width; }
   void set_height(int height) { image_height = (bdata == nullptr) ? 0 : height; }

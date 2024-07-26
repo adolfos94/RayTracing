@@ -167,7 +167,18 @@ int main()
   // Create world with CUDA
   hittable_list** d_world;
   checkCudaErrors(cudaMalloc(&d_world, sizeof(hittable_list**)));
-  checkered_spheres_kernel << <1, 1 >> > (d_world);
+
+  image earth_image = image("D:\\C++\\RayTracing\\assets\\earthmap.jpg");
+
+  image* d_earth_image;
+  checkCudaErrors(cudaMallocManaged(&d_earth_image, sizeof(image)));
+  checkCudaErrors(cudaMemcpy(d_earth_image, &earth_image, sizeof(image), cudaMemcpyKind::cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMalloc(&d_earth_image->data(), earth_image.size()));
+  checkCudaErrors(cudaMemcpy(d_earth_image->data(), earth_image.data(), earth_image.size(), cudaMemcpyKind::cudaMemcpyHostToDevice));
+
+  earth_kernel << <1, 1 >> > (d_world, d_earth_image);
+
+  //checkered_spheres_kernel << <1, 1 >> > (d_world);
   checkCudaErrors(cudaDeviceSynchronize());
 
   // Create camera
