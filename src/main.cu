@@ -155,10 +155,6 @@ __global__ void render_kernel(hittable_list** d_world, camera** d_camera, curand
 
 int main()
 {
-  // ReRun visualization
-  const auto rec = rerun::RecordingStream("RayTracing");
-  rec.spawn().exit_on_failure();
-
   // Get the current stack size.
   size_t stackSize;
   cudaDeviceGetLimit(&stackSize, cudaLimitStackSize);
@@ -200,17 +196,16 @@ int main()
   checkCudaErrors(cudaDeviceSynchronize());
 
   // Create image
-  image h_image = image(width, height);
-
   image d_image = image(width, height);
   checkCudaErrors(cudaMalloc(&d_image.data(), d_image.size()));
 
   render_kernel << <blocks, threads >> > (d_world, d_camera, d_rand_state, d_image);
   checkCudaErrors(cudaDeviceSynchronize());
 
-  checkCudaErrors(cudaMemcpy(h_image.data(), d_image.data(), h_image.size(), cudaMemcpyDeviceToHost));
+  image h_image = image(width, height);
+  checkCudaErrors(cudaMemcpy(h_image.data(), d_image.data(), d_image.size(), cudaMemcpyDeviceToHost));
 
-  rec.log_timeless("RayTracing", rerun::Image({ h_image.height(), h_image.width(), 3 }, h_image.data()));
+  h_image.save("./image.ppm");
 
   return 0;
 }

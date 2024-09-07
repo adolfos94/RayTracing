@@ -69,6 +69,31 @@ public:
     return true;
   }
 
+  void save(const std::string& filename)
+  {
+    std::ofstream output_file(filename);
+
+    if (!output_file.is_open())
+      return;
+
+    output_file << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+    for (int j = 0; j < image_height; j++)
+    {
+      for (int i = 0; i < image_width; i++)
+      {
+        auto idx = j * image_width + i;
+
+        int ir = bdata[idx * bytes_per_pixel + 0];
+        int ig = bdata[idx * bytes_per_pixel + 1];
+        int ib = bdata[idx * bytes_per_pixel + 2];
+
+        output_file << ir << ' ' << ig << ' ' << ib << '\n';
+      }
+    }
+    output_file.close();
+  }
+
   __device__ __host__ int width() const { return (bdata == nullptr) ? 0 : image_width; } // height
   __device__ __host__ int height() const { return (bdata == nullptr) ? 0 : image_height; } // width
   __device__ __host__ int size() const { return (bdata == nullptr) ? 0 : image_width * image_height * bytes_per_pixel; } // size in bytes

@@ -1,17 +1,7 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(RayTracing VERSION "1.0.0" LANGUAGES CXX CUDA)
-
-find_package(CUDA REQUIRED)
-
-# Rerun
-set(RERUN_ARROW_LINK_SHARED ON)
-set(RERUN_DOWNLOAD_AND_BUILD_ARROW OFF)
-
-include(FetchContent)
-FetchContent_Declare(rerun_sdk URL
-    https://github.com/rerun-io/rerun/releases/latest/download/rerun_cpp_sdk.zip)
-FetchContent_MakeAvailable(rerun_sdk)
 
 add_subdirectory(src)

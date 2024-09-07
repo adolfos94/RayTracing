@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <limits>
 #include <memory>
 #include <random>
@@ -18,8 +19,6 @@
 #include <CUDA/std/tuple>
 
 #include "CUDA/stack.hpp"
-
-#include <rerun.hpp>
 
 // Constants
 __constant__ const double infinity = std::numeric_limits<double>::infinity();

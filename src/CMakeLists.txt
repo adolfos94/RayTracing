@@ -18,8 +18,7 @@ set(INCLUDE_DIRS
 
 set(LIBRARIES
     ${CUDA_LIBRARIES}
-    cudadevrt 
-    rerun_sdk
+    cudadevrt
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
